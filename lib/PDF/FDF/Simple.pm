@@ -7,9 +7,9 @@ use vars qw($VERSION $deferred_result_FDF_OPTIONS);
 use Data::Dumper;
 use Parse::RecDescent;
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 
-#RecDescent Environment variables: enable for Debugging
+#Parse::RecDescent environment variables: enable for Debugging
 #$::RD_TRACE = 1;
 #$::RD_HINT  = 1;
 
@@ -82,17 +82,6 @@ sub _post_init {
 	 # TODO: How do I optimize the next two alternatives,
 	 #       which in fact execute the same code?
 	 #       Can the code block be written only once?
-                   | '<<' kids fieldname '>>' fieldlist
-                     {
-                       my $fieldlist;
-                       foreach my $ref ( @{$item{kids}} ) {
-                         my %kids = %{$ref};
-                         foreach my $key (keys %kids) {
-                           push (@{$fieldlist},{ $item{fieldname}.".".$key=>$kids{$key}});
-                         }
-                       }
-                       push ( @{$return}, @{$fieldlist}, @{$item{fieldlist}} );
-                     }
                    | '<<' fieldname kids '>>' fieldlist
                      {
                        my $fieldlist;
@@ -104,22 +93,32 @@ sub _post_init {
                        }
                        push ( @{$return}, @{$fieldlist}, @{$item{fieldlist}} );
                      }
+                   | '<<' kids fieldname '>>' fieldlist
+                     {
+                       my $fieldlist;
+                       foreach my $ref ( @{$item{kids}} ) {
+                         my %kids = %{$ref};
+                         foreach my $key (keys %kids) {
+                           push (@{$fieldlist},{ $item{fieldname}.".".$key=>$kids{$key}});
+                         }
+                       }
+                       push ( @{$return}, @{$fieldlist}, @{$item{fieldlist}} );
+                     }
                    | # empty
                      {
                       $return = [];
                      }
 
          kids : '/Kids' '[' fieldlist ']'
-                     {
-                       $return = $item{fieldlist};
-                     }
+	        {
+		 $return = $item{fieldlist};
+	        }
 
-         field : '<<' fieldvalue fieldname '>>'
+         field : '<<' fieldname fieldvalue '>>'
                  {
                    $return = { $item{fieldname} => $item{fieldvalue} };
                  }
-
-               | '<<' fieldname fieldvalue '>>'
+               | '<<' fieldvalue fieldname '>>'
                  {
                    $return = { $item{fieldname} => $item{fieldvalue} };
                  }
@@ -132,7 +131,7 @@ sub _post_init {
                       }
                     | '/V' feature
                       {
-                        $return = substr ($item{feature},1);
+                        $return = substr ($item{feature}, 1);
                         $return =~ s/\\\\(\d{3})/sprintf ("%c", oct($1))/eg;         # handle octal
                         $return =~ s/\\#([0-9A-F]{2})/sprintf ("%c",  hex($1))/eg;   # handle hex
                       }
@@ -146,79 +145,87 @@ sub _post_init {
                         $return =~ s/\\#([0-9A-F]{2})/sprintf ("%c",  hex($1))/eg;   # handle hex
                      }
 
+	 value : valuechar value
+	         {
+                   $return = $item{valuechar}.$item{value};
+                 }
+	       | # empty
+	         {
+		  $return = "";
+                 }
+
 	 # This handles different whitespace artefacts that exist
 	 # in this world and handles them similar to FDFToolkit.
 	 # (Remember: backslashes must be doubled within a Parse::RecDescent grammar,
 	 # except if they occur single.)
-         value : '\\\\\\\\'  value
-                 {
-                   $return = chr(92).$item{value};
-                 }
-               | '\\\\#' value
-                 {
-                  $return = "#".$item{value};
-                 }
-               | '\\\\\\\\r' value
-                 {
-                   $return = '\r'.$item{value};
-                 }
-               | '\\\\\\\\t' value
-                 {
-                   $return = '\t'.$item{value};
-                 }
-               | '\\\\\\\\n' value
-                 {
-                   $return = '\n'.$item{value};
-                 }
-               | '\\\\\r' value
-                 {
-                   $return = ''.$item{value};
-                 }
-               | '\\\\\n' value
-                 {
-                   $return = ''.$item{value};
-                 }
-               | '\\\\r' value
-                 {
-                   $return = chr(13).$item{value};
-                 }
-               | '\\\\n' value
-                 {
-                   $return = chr(10).$item{value};
-                 }
-               | '\r' value
-                 {
-                   $return = ''.$item{value};
-                 }
-               | '\t' value
-                 {
-                   $return = "\t".$item{value};
-                 }
-               | '' value
-                 {
-                   $return = chr(10).$item{value};
-                 }
-               | '\\\\' value
-                 {
-                   $return = ''.$item{value};
-                 }
-               | /\n/ value #'\n' value
-                 {
-                   $return = ''.$item{value};
-                 }
-               |  m/\\\\/ m/\n/ value
-                 {
-                   $return = ''.$item{value};
-                 }
-
-               | '\\\\(' value
-                 {
-                   $return = '('.$item{value};
-                 }
-               | '\\\\)' value
-                 {
-                   $return = ')'.$item{value};
-                 }
+         valuechar : '\\\\\\\\'
+                     {
+                       $return = chr(92);
+                     }
+                   | '\\\\#'
+                     {
+                      $return = "#";
+                     }
+                   | '\\\\\\\\r'
+                     {
+                       $return = '\r';
+                     }
+                   | '\\\\\\\\t'
+                     {
+                       $return = '\t';
+                     }
+                   | '\\\\\\\\n'
+                     {
+                       $return = '\n';
+                     }
+                   | '\\\\\r'
+                     {
+                       $return = '';
+                     }
+                   | '\\\\\n'
+                     {
+                       $return = '';
+                     }
+                   | '\\\\r'
+                     {
+                       $return = chr(13);
+                     }
+                   | '\\\\n'
+                     {
+                       $return = chr(10);
+                     }
+                   | '\r'
+                     {
+                       $return = '';
+                     }
+                   | '\t'
+                     {
+                       $return = "\t";
+                     }
+                   | ''
+                     {
+                       $return = chr(10);
+                     }
+                   | '\\\\'
+                     {
+                       $return = '';
+                     }
+                   | /\n/
+                     {
+                       $return = '';
+                     }
+                   |  m/\\\\/ m/\n/
+                     {
+                       $return = ''
+                     }
+                   | '\\\\('
+                     {
+                       $return = '(';
+                     }
+                   | '\\\\)'
+                     {
+                       $return = ')';
+                     }
 	 # The next two rules work closely together:
 	 #
 	 # - the first matches every *single* character 
@@ -229,20 +236,14 @@ sub _post_init {
 	 #
 	 #   (All the "problematic" chars and chains of them
 	 #   are already handled in the rules above.)
-
-	       | /[\r\t\n\\\\ ]/ value
-                 {
-                   $return = $item[1].$item{value};
-                 }
-               | /([^()\r\t\n\\\\ ]+)/ value
-                 {
-                   $return = $item[1].$item{value};
-                 }
-
-               | # empty
-                 {
-                  $return = "";
-                 }
+        	   | /[\r\t\n\\\\ ]/
+                     {
+                       $return = $item[1];
+                     }
+                   | /([^()\r\t\n\\\\ ]+)/
+                     {
+                       $return = $item[1];
+                     }
 
          attributes : '/F' '(' name ')' attributes
 	              <defer: $PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{F} = $item[3];>

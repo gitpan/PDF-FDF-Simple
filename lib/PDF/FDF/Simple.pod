@@ -7,17 +7,20 @@ PDF::FDF::Simple - Read and write (Acrobat) FDF files.
 =head1 SYNOPSIS
 
   my $fdf = new PDF::FDF::Simple ({ filename     => '/tmp/test.fdf' });
-  $fdf->{content} = {
-                     'name'                 => 'Fred Madison',
-                     'organisation'         => 'Luna Lounge Ltd.',
-                     'dotted.field.name'    => 'Hello world.',
-                     'language.radio.value' => 'French',
-                     'my.checkbox.value'    => 'On'   # 'On' / 'Off'
-                   };
+  $fdf->content ({
+                  'name'                 => 'Fred Madison',
+                  'organisation'         => 'Luna Lounge Ltd.',
+                  'dotted.field.name'    => 'Hello world.',
+                  'language.radio.value' => 'French',
+                  'my.checkbox.value'    => 'On'   # 'On' / 'Off'
+                 });
   $fdf->save or print $fdf->errmsg;
   my $fdfcontent = $fdf->load;
   $fdfcontent = $fdf->load ($fdfstring);
   print $fdf->as_string;
+  print "Corresponding PDF (attribute /F): ".$fdf->target."\n";
+  print "IDs (attribute /ID): ";
+  print $_ foreach @{$fdf->id}; print "\n";
 
 =head1 DESCRIPTION
 
@@ -66,6 +69,16 @@ Get/set target filename (string).
 =head2 content
 
 Get/set content of fields (hashref).
+
+=head2 attribute_file
+
+Get/set the corresponding PDF filename of the form.
+This method corresponds to the /F attribute in FDF content.
+
+=head2 attribute_id
+
+Get/set the list (array reference) of form IDs.
+This method corresponds to the /ID attribute in FDF content.
 
 =head2 load
 

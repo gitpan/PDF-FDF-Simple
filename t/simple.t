@@ -25,13 +25,13 @@ my ($fdf_fh, $fdf_fname) = tempfile (
 my $fdf = new PDF::FDF::Simple ({
                                  'filename'     => $fdf_fname
                                 });
-$fdf->{content} = {
-                   'name'                 => 'Blubberman',
-                   'organisation'         => 'Misc Stuff Ltd.',
-                   'dotted.field.name'    => 'Hello world.',
-                   'language.radio.value' => 'French',
-                   'my.checkbox.value'    => 'On'
-                  };
+$fdf->content ({
+		'name'                 => 'Blubberman',
+		'organisation'         => 'Misc Stuff Ltd.',
+		'dotted.field.name'    => 'Hello world.',
+		'language.radio.value' => 'French',
+		'my.checkbox.value'    => 'On'
+	       });
 $fdf->save
  ? ok ('save')
  : not_ok ('save');

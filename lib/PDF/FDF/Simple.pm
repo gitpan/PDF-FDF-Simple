@@ -3,11 +3,11 @@ package PDF::FDF::Simple;
 use strict;
 use warnings;
 
-use vars qw($VERSION);
+use vars qw($VERSION $deferred_result_FDF_OPTIONS);
 use Data::Dumper;
 use Parse::RecDescent;
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 #RecDescent Environment variables: enable for Debugging
 #$::RD_TRACE = 1;
@@ -19,13 +19,12 @@ use Class::MethodMaker
              'content',
              'errmsg',
              'parser',
+             'attribute_file',
+             'attribute_id',
             ],
  new_with_init => 'new',
  new_hash_init => 'hash_init',
  ;
-
-# for substituting ^M or \r to \n
-my $bslashR = "\r"; # TODO: does'nt work yet, should be used in fieldvalue
 
 sub _pre_init {
   my $self = shift;
@@ -36,14 +35,16 @@ sub _pre_init {
 sub _post_init {
   my $self = shift;
 
-  my $recdesc = new Parse::RecDescent(
+  my $recdesc = new Parse::RecDescent (
        q(
-         startrule : fdf_head objlist fdf_tail
+         startrule : /%FDF-[0-9]+\.[0-9]+/ garbage objlist 'trailer' '<<' '/Root 1 0 R' '>>' /.*/
                       {
+			$PDF::FDF::Simple::deferred_result_FDF_OPTIONS = {};
                         $return = $item{objlist};
                       }
 
-         fdf_head : '%FDF-' version garbage | <error>
+         garbage : /%.*/
+                 | # empty
 
          objlist : obj objlist
                    {
@@ -53,71 +54,46 @@ sub _post_init {
                    {
                       $return = [];
                    }
-                 | <error>
 
          obj : /\d+/ /\d+/ 'obj' objbody 'endobj'
-               { $return = $item{objbody}; }
-               | <error>
+               {
+		$return = $item{objbody};
+	       }
 
-         objbody : obj1
-                 | obj2
-                 | obj3
-                 | <error>
-
-         obj1 : ot objcontent1 ct
-               { $return = $item{objcontent1}; }
-             | <error>
-
-         obj2 : objcontent2
-               { $return = $item{objcontent2}; }
-             | <error>
-
-         obj3 : ot objcontent3 ct
-               { $return = $item{objcontent3}; }
-             | <error>
-
-         fdf_tail : 'trailer' ot '/Root 1 0 R' ct rest | <error>
-
-         ot : '<<' | <error>        #opening tags
-         ct : '>>' | <error>        #closing tags
-         ob : '(' | <error>         #opening braces
-         cb : ')' | <error>         #closing braces
-         obt : '[' | <error>        #opening brackets
-         cbt : ']' | <error>        #closing brackets
-
-         filetype : '/FDF'
-                  | <error>
-
-         objcontent1 : filetype ot '/Fields' obt fieldlist cbt footer ct
-                       {
-                         $return = $item{fieldlist};
-                       } 
-                     | filetype ot footer '/Fields' obt fieldlist cbt ct
-                       {
-                         $return = $item{fieldlist};
-                       }
-                       | <error>
-
-         objcontent2 : obt fieldlist cbt
-                       {
-                         $return = $item{fieldlist};
-                       }
-                       | <error>
-
-         objcontent3 : filetype ot '/Fields' objreference ct
-                       {
-                         $return = []; #$item{fieldlist};
-                       }
-                       | <error>
+         objbody : '<<' '/FDF' '<<' attributes '/Fields' '[' fieldlist ']' attributes '>>' '>>'
+                   {
+		    $return = $item{fieldlist};
+		   }
+                 | '[' fieldlist ']'
+                   {
+		     $return = $item{fieldlist};
+		   }
+                 | '<<' '/FDF' '<<' attributes '/Fields' objreference attributes '>>' '>>'
+                   {
+		    $return = [];
+		   }
 
          objreference : /\d+/ /\d+/ 'R'
-                      | <error>
 
          fieldlist : field fieldlist
                      {
                        push ( @{$return}, $item{field}, @{$item{fieldlist}} );
                      }
-                   | ot fieldname kids ct fieldlist
+	 # TODO: How do I optimize the next two alternatives,
+	 #       which in fact execute the same code?
+	 #       Can the code block be written only once?
+                   | '<<' kids fieldname '>>' fieldlist
+                     {
+                       my $fieldlist;
+                       foreach my $ref ( @{$item{kids}} ) {
+                         my %kids = %{$ref};
+                         foreach my $key (keys %kids) {
+                           push (@{$fieldlist},{ $item{fieldname}.".".$key=>$kids{$key}});
+                         }
+                       }
+                       push ( @{$return}, @{$fieldlist}, @{$item{fieldlist}} );
+                     }
+                   | '<<' fieldname kids '>>' fieldlist
                      {
                        my $fieldlist;
                        foreach my $ref ( @{$item{kids}} ) {
@@ -128,66 +104,52 @@ sub _post_init {
                        }
                        push ( @{$return}, @{$fieldlist}, @{$item{fieldlist}} );
                      }
-
-                   | ot kids fieldname ct fieldlist
-                     {
-                       my $fieldlist;
-
-                       foreach my $ref ( @{$item{kids}} ) {
-                         my %kids = %{$ref};
-                         foreach my $key (keys %kids) {
-                           push (@{$fieldlist},{ $item{fieldname}.".".$key=>$kids{$key}});
-                         }
-                       }
-                       push ( @{$return}, @{$fieldlist}, @{$item{fieldlist}} );
-                     }
-
-                   |
+                   | # empty
                      {
                       $return = [];
                      }
-                   | <error>
 
-         kids : '/Kids' obt fieldlist cbt
+         kids : '/Kids' '[' fieldlist ']'
                      {
                        $return = $item{fieldlist};
                      }
-              | <error>
 
-         field : ot fieldvalue fieldname ct
+         field : '<<' fieldvalue fieldname '>>'
                  {
                    $return = { $item{fieldname} => $item{fieldvalue} };
                  }
 
-               | ot fieldname fieldvalue ct
+               | '<<' fieldname fieldvalue '>>'
                  {
                    $return = { $item{fieldname} => $item{fieldvalue} };
                  }
 
-               | <error>
-
-         fieldvalue : '/V' ob <skip:""> value <skip:$item[3]> cb
+         fieldvalue : '/V' '(' <skip:""> value <skip:$item[3]> ')'
                       {
                         $return = $item{value};
-                        $return =~ s/\\\\(\d{3})/sprintf ("%c", oct($1))/eg;   #handle octals
-                        $return =~ s/\\#([0-9A-F]{2})/sprintf ("%c",  hex($1))/eg;   # hexals
+                        $return =~ s/\\\\(\d{3})/sprintf ("%c", oct($1))/eg;         # handle octal
+                        $return =~ s/\\#([0-9A-F]{2})/sprintf ("%c",  hex($1))/eg;   # handle hex
                       }
                     | '/V' feature
                       {
                         $return = substr ($item{feature},1);
-                        $return =~ s/\\\\(\d{3})/sprintf ("%c", oct($1))/eg;
-                        $return =~ s/\\#([0-9A-F]{2})/sprintf ("%c",  hex($1))/eg;
+                        $return =~ s/\\\\(\d{3})/sprintf ("%c", oct($1))/eg;         # handle octal
+                        $return =~ s/\\#([0-9A-F]{2})/sprintf ("%c",  hex($1))/eg;   # handle hex
                       }
-                    | <error>
 
-         fieldname : '/T' ob name cb
+         feature :  m!/[^\s/>]*!
+
+         fieldname : '/T' '(' name ')'
                      {
                         $return = $item{name};
-                        $return =~ s/\\\\(\d{3})/sprintf ("%c", oct($1))/eg;
-                        $return =~ s/\\#([0-9A-F]{2})/sprintf ("%c",  hex($1))/eg;
+                        $return =~ s/\\\\(\d{3})/sprintf ("%c", oct($1))/eg;         # handle octal
+                        $return =~ s/\\#([0-9A-F]{2})/sprintf ("%c",  hex($1))/eg;   # handle hex
                      }
-                   | <error>
 
+	 # This handles different whitespace artefacts that exist
+	 # in this world and handles them similar to FDFToolkit.
+	 # (Remember: backslashes must be doubled within a Parse::RecDescent grammar,
+	 # except if they occur single.)
          value : '\\\\\\\\'  value
                  {
                    $return = chr(92).$item{value};
@@ -257,36 +219,48 @@ sub _post_init {
                  {
                    $return = ')'.$item{value};
                  }
-               | /([^()])/ value
+	 # The next two rules work closely together:
+	 #
+	 # - the first matches every *single* character 
+	 #   that is in the exclude list of the second rule.
+	 #
+	 # - the second rule matches blocks of
+	 #   successive "non-problematic" characters
+	 #
+	 #   (All the "problematic" chars and chains of them
+	 #   are already handled in the rules above.)
+
+	       | /[\r\t\n\\\\ ]/ value
                  {
                    $return = $item[1].$item{value};
                  }
+               | /([^()\r\t\n\\\\ ]+)/ value
+                 {
+                   $return = $item[1].$item{value};
+                 }
+
                | # empty
                  {
                   $return = "";
                  }
-               |<error>
 
-         feature :  m!/[^\s/>]*!  | <error> #m!/[^\s]*!  | <error>
+         attributes : '/F' '(' name ')' attributes
+	              <defer: $PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{F} = $item[3];>
+	              {
+		       $return = $item{name};
+		      }
+	            | '/ID' '[' idnum(s?) ']' attributes
+	            | # empty
 
-         version : /[0-9]+\.[0-9]+/
-                 | <error>
-         garbage : /%.*/
-                 | # empty
-                 | <error>
-         rest :  /.*/ | <error>
+         name : /([^\)][\s]*)*/   # one symbol but not \)
 
-         footer : '/F' ob name cb id | | <error>
-
-         name : /([^\)][\s]*)*/   | <error>     # one symbol but not \)
-
-         id : '/ID' obt idnum idnum  cbt
-            | # empty, no id
-            | <error>
          idnum : '<' /[(\w)*(\d)*]*/ '>'
-               | ob /([^()])*/ cb
-               | <error>
+	         <defer: push (@{$PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{ID}}, $item[1].$item[2].$item[3]); >
+               | '(' /([^()])*/ ')'
+	         <defer: push (@{$PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{ID}}, $item[1].$item[2].$item[3]); >
+
         ));
+
   $self->parser ($recdesc);
 }
 
@@ -298,20 +272,22 @@ sub init {
   return $self;
 }
 
-
 sub _fdf_header {
   my $self = shift;
-  return <<__EOT__;
-%FDF-1.2
 
-1 0 obj
-<<
-/FDF << /Fields 2 0 R >>
->>
-endobj
-2 0 obj
-[
-__EOT__
+  my $string = "%FDF-1.2\n\n1 0 obj\n<<\n/FDF << /Fields 2 0 R";
+  # /F
+  if ($self->attribute_file){
+    $string .= "/F (".$self->attribute_file.")";
+  }
+  # /ID
+  if ($self->attribute_id){
+    $string .= "/ID[";
+    $string .= $_ foreach @{$self->attribute_id};
+    $string .= "]";
+  }
+  $string .= ">>\n>>\nendobj\n2 0 obj\n[";
+  return $string;
 }
 
 sub _fdf_footer {
@@ -374,12 +350,15 @@ sub _read_fdf {
   my $filecontent;
 
   # read file to be checked
-  open FH, "< ".$self->filename or return -1;
-  {
+  unless (open FH, "< ".$self->filename) {
+    $self->errmsg ('error: could not read file ' . $self->filename);
+    return undef;
+  } else {
     local $/;
     $filecontent = <FH>;
   }
   close FH;
+  $self->errmsg ('');
   return $filecontent;
 }
 
@@ -402,10 +381,21 @@ sub load {
   my $self = shift;
   my $filecontent = shift;
 
-  $filecontent = $self->_read_fdf unless $filecontent;
+  # prepare content
+  unless ($filecontent) {
+    $filecontent = $self->_read_fdf;
+    return undef unless $filecontent;
+  }
+
+  # parse
   my $output = $self->parser->startrule ($filecontent);
+
+  # take over parser results
+  $self->attribute_file ($PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{F}); # /F
+  $self->attribute_id ($PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{ID});    # /ID
   $self->content ($self->_map_parser_output ($output));
   $self->errmsg ("Corrupt FDF file!\n") unless $self->content;
+
   return $self->content;
 }
 

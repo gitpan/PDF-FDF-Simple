@@ -1,3 +1,19 @@
+2004-10-21  Steffen Schwigon  <schwigon@webit.de>
+
+	* speedup grammar by about 45%
+
+	* attribute_file() and attribute_id() for getting/setting
+	the /F and /ID attributes as suggested by David Thomas.
+
+	* parser extension that reflects those attributes
+
+	* tests
+
+	* parsing of content in blocks of "non-problematic" characters.
+	This gives less "Deep recursion" warnings.
+
+	* Version 0.04
+
 2004-08-10  Steffen Schwigon  <schwigon@webit.de>
 
 	* as_string() method

@@ -45,3 +45,4 @@ my $erg = $fdf2->load;
 $erg->{'oeavoba.angebotseroeffnung.anschrift'} eq 'Ländliche Neuordnung in Sachsen TG Schönwölkau I, Lüptitzer Str. 39, 04808 Wurzen'
  ? ok ("load")
  : not_ok ("load");
+

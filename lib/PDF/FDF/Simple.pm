@@ -7,7 +7,7 @@ use vars qw($VERSION);
 use Data::Dumper;
 use Parse::RecDescent;
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 #RecDescent Environment variables: enable for Debugging
 #$::RD_TRACE = 1;
@@ -343,6 +343,18 @@ sub _fdf_field_formatstr {
   return "<< /T (%s) /V (%s) >>\n"
 }
 
+sub as_string {
+  my $self = shift;
+  my $fdf_string = $self->_fdf_header;
+  foreach (sort keys %{$self->content}) {
+    $fdf_string .= sprintf ($self->_fdf_field_formatstr,
+			    $_,
+			    $self->_quote($self->content->{$_}));
+  }
+  $fdf_string .= $self->_fdf_footer;
+  return $fdf_string;
+}
+
 sub save {
   my $self = shift;
   open (F, "> ".$self->filename) or do {
@@ -350,13 +362,7 @@ sub save {
     return 0;
   };
 
-  print F $self->_fdf_header;
-  foreach (sort keys %{$self->content}) {
-    print F sprintf ($self->_fdf_field_formatstr,
-		     $_,
-		     $self->_quote($self->content->{$_}));
-  }
-  print F $self->_fdf_footer;
+  print F $self->as_string;
   close (F);
 
   $self->errmsg ('');

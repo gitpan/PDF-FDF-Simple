@@ -16,6 +16,8 @@ PDF::FDF::Simple - Read and write (Acrobat) FDF files.
                    };
   $fdf->save or print $fdf->errmsg;
   my $fdfcontent = $fdf->load;
+  $fdfcontent = $fdf->load ($fdfstring);
+  print $fdf->as_string;
 
 =head1 DESCRIPTION
 
@@ -28,7 +30,7 @@ After the extraction process the content is available within a hash
 reference.
 
 For creating FDF files it currently only supports setting text
-values. Anyway, this should be enough to create FDF files with text
+values. Anyway, this should be enough to create FDF files for text
 fields, text areas, checkboxes and radio buttons.
 
 PDF::FDF::Simple uses Parse::RecDescent and understands both, the
@@ -41,14 +43,15 @@ Text fields and text areas are simply filled with the given text.
 
 =head2 Radio button groups
 
-In a radio button group the entry that matches exactly the field
-value is selected. The entries and their values are defined in the
-PDF where the FDF is loaded into.
+In a radio button group the entry that matches exactly the field value
+is selected. The entries and their values are defined in the PDF where
+the FDF is loaded into.
 
 =head2 Checkboxes
 
 In the PDF document into which the FDF is loaded a checkbox field is
-set to checked/unchecked with field values 'On' or 'Off', respectively.
+set to checked/unchecked with field values 'On' or 'Off',
+respectively.
 
 =head1 API Methods
 
@@ -69,14 +72,22 @@ Get/set content of fields (hashref).
 Load an existing FDF file named via C<filename> and stores the
 information in a hashref (see also C<content>).
 
+An optional parameter can be given that contains FDF content. In that
+case it is not read from file C<filename>.
+
 =head2 save
 
 Save the FDF content into the file named via C<filename>.
 
+=head2 as_string
+
+Returns the FDF content as scalar string, so you can work with it
+without the need to save into file.
+
 =head2 errmsg
 
-Get/set error message.
-Will be set internally when an error occured. Setting it is useless.
+Get/set error message. Will be set internally when an error
+occured. Just read it, setting it is useless.
 
 =head1 Internal Methods
 
@@ -155,7 +166,7 @@ Steffen Schwigon <schwigon@webit.de>,
 
 =item *
 
-Tim Schreier <schreier@webit.de>
+Tim Schreier
 
 =back
 

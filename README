@@ -1,12 +1,12 @@
 MODULE
 
-  PDF::FDF::Simple
+  PDF::FDF::Simple - Read and write (Acrobat) FDF files.
 
 ABOUT
 
-  PDF::FDF::Simple - Helps creating simple FDF files and extracting
-  the content of FDF files. It is meant to be a simple replacement for
-  the Adobe FdfToolkit when you just want to read or create fdf files.
+  PDF::FDF::Simple helps creating and extracting FDF files. It is
+  meant to be a simple replacement for the Adobe FdfToolkit when you
+  just want to read or create fdf files.
 
   After the extraction process the content is available within a hash
   reference.
@@ -31,7 +31,7 @@ SYNOPSIS
 
 PREREQUISITES
 
-  Parse::RecDescent (VERSION 1.94)
+  Parse::RecDescent (1.94)
   Class::MethodMaker
 
 AUTHOR

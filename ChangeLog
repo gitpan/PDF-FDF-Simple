@@ -1,4 +1,24 @@
+2004-08-10  Steffen Schwigon  <schwigon@webit.de>
+
+	* as_string() method
+
+	* Version 0.03
+
+2004-05-21  Steffen Schwigon  <schwigon@webit.de>
+
+	* Doc minor cleanup
+
+2004-05-21  Steffen Schwigon  <schwigon@webit.de>
+
+	* Renamed to PDF::FDF::Simple
+
+	* Parser fixes with newline handling
+
+	* Version 0.02
+
 2004-05-17  Steffen Schwigon  <schwigon@webit.de>
 
-	* 0.0.1: first official version
+	* first official version
+	
+	* Version 0.01
 	

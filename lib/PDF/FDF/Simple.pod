@@ -6,13 +6,14 @@ PDF::FDF::Simple - Read and write (Acrobat) FDF files.
 
 =head1 SYNOPSIS
 
-  my $fdf = new PDF::FDF::Simple ({ filename     => '/tmp/test.fdf' });
+  my $fdf = new PDF::FDF::Simple ({ filename => '/tmp/test.fdf' });
+  $fdf->skip_undefined_fields (1);
   $fdf->content ({
                   'name'                 => 'Fred Madison',
                   'organisation'         => 'Luna Lounge Ltd.',
                   'dotted.field.name'    => 'Hello world.',
                   'language.radio.value' => 'French',
-                  'my.checkbox.value'    => 'On'   # 'On' / 'Off'
+                  'my.checkbox.value'    => 'On',   # 'On' / 'Off'
                  });
   $fdf->save or print $fdf->errmsg;
   my $fdfcontent = $fdf->load;
@@ -61,6 +62,12 @@ respectively.
 =head2 new
 
 Constructor. Takes a hash reference for arguments.
+
+=head2 skip_undefined_fields
+
+Option, default is 0. If set to a true value (e.g., 1), then fields
+whose value is undefined are not contained in generated fdf. By
+default undefined field values are converted to empty string ('').
 
 =head2 filename
 
@@ -185,7 +192,7 @@ Tim Schreier
 
 =head1 LICENSE
 
-Copyright (c) 2004 Steffen Schwigon. All rights reserved. This
+Copyright (c) 2004, 2005 Steffen Schwigon. All rights reserved. This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
@@ -202,7 +209,7 @@ if you know how to avoid them, please drop me a mail.
 
 =head1 FEEDBACK
 
-We are interested in comments/enhancements/bugfixes. Drop me
+I am interested in comments/enhancements/bugreports. Drop me
 <schwigon@webit.de> a mail if you use this module.
 
 =cut

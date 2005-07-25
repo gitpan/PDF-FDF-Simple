@@ -7,7 +7,7 @@ use vars qw($VERSION $deferred_result_FDF_OPTIONS);
 use Data::Dumper;
 use Parse::RecDescent;
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 #Parse::RecDescent environment variables: enable for Debugging
 #$::RD_TRACE = 1;
@@ -15,6 +15,7 @@ $VERSION = '0.05';
 
 use Class::MethodMaker
  get_set => [
+             'skip_undefined_fields',
              'filename',
              'content',
              'errmsg',
@@ -29,6 +30,7 @@ use Class::MethodMaker
 sub _pre_init {
   my $self = shift;
   $self->errmsg ('');
+  $self->skip_undefined_fields (0);
 }
 
 # setting up grammar
@@ -37,11 +39,13 @@ sub _post_init {
 
   my $recdesc = new Parse::RecDescent (
        q(
-         startrule : /%FDF-[0-9]+\.[0-9]+/ garbage objlist 'trailer' '<<' '/Root 1 0 R' '>>' /.*/
+         startrule : docstart objlist 'trailer' '<<' '/Root 1 0 R' '>>' /.*/
                       {
 			$PDF::FDF::Simple::deferred_result_FDF_OPTIONS = {};
                         $return = $item{objlist};
                       }
+         docstart : /%FDF-[0-9]+\.[0-9]+/ garbage
+                  | # empty
 
          garbage : /%.*/
                  | # empty
@@ -255,7 +259,7 @@ sub _post_init {
 
          name : /([^\)][\s]*)*/   # one symbol but not \)
 
-         idnum : '<' /[(\w)*(\d)*]*/ '>'
+         idnum : '<' /[\w]*/ '>'
 	         <defer: push (@{$PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{ID}}, $item[1].$item[2].$item[3]); >
                | '(' /([^()])*/ ')'
 	         <defer: push (@{$PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{ID}}, $item[1].$item[2].$item[3]); >
@@ -324,9 +328,14 @@ sub as_string {
   my $self = shift;
   my $fdf_string = $self->_fdf_header;
   foreach (sort keys %{$self->content}) {
+    my $val = $self->content->{$_};
+    if (not defined $val) {
+      next if ($self->skip_undefined_fields);
+      $val = '';
+    }
     $fdf_string .= sprintf ($self->_fdf_field_formatstr,
-			    $_,
-			    $self->_quote($self->content->{$_}));
+                            $_,
+                            $self->_quote($val));
   }
   $fdf_string .= $self->_fdf_footer;
   return $fdf_string;

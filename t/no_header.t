@@ -1,9 +1,8 @@
 ### -*- mode: perl; -*-
 
-use Test::More;
-
 use PDF::FDF::Simple;
 use File::Temp qw( tempfile );
+use Test::More;
 
 use Data::Dumper;
 use Parse::RecDescent;
@@ -14,8 +13,7 @@ plan tests => 4;
 
 ################## tests ##################
 
-
-my $fdf_fname = 't/hundev1.fdf';
+my $fdf_fname = 't/hunde_no_header.fdf';
 my $fdf = new PDF::FDF::Simple ({
                                  'filename' => $fdf_fname,
                                 });

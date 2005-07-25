@@ -1,3 +1,20 @@
+2005-06-03  Steffen Schwigon  <schwigon@webit.de>
+
+	* 0.06
+
+	* The Parser now also works without initial version header in FDF
+	file. This seems to be needed in FDFs that were submitted from
+	Acrobat to an URL (e.g., a CGI script).
+
+	* undefined values are converted into empty strings ('') when fdf
+	is generated (and/or saved), to avoid "uninitialized value"
+	warnings. To avoid this, set option "skip_undefined_fields" to a
+	true value (default is false); then fields whose value is
+	undefined are skipped.
+
+	* Test framework now uses Test::More (plus Test::Pod::Coverage and
+	Test::Distribution if available).
+
 2004-10-22  Steffen Schwigon  <schwigon@webit.de>
 
 	* More speed changes

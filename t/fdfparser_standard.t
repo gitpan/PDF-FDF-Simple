@@ -1,14 +1,13 @@
 ### -*- mode: perl; -*-
 
-use lib "t/";
-use TestHelper qw(:test);
+use Test::More;
 use PDF::FDF::Simple;
 
 use Data::Dumper;
 use strict;
 use warnings;
 
-BEGIN { $| = 1; print "1..18\n"; }
+plan tests => 18;
 
 ################## tests ##################
 
@@ -17,63 +16,42 @@ my $parser = new PDF::FDF::Simple ({
                                     filename => $testfile,
                                    });
 
-$parser
- ? ok     ("setting up")
- : not_ok ("setting up");
+ok ($parser, "setting up");
 
 my $fdf_content_ptr = $parser->load;
 
-$fdf_content_ptr->{'root.data.plzort'} eq '01069'
- ? ok     ("parsing file - digits")
- : not_ok ("parsing file - digits");
-$fdf_content_ptr->{'root.parentA.kidA_A'} eq 'valueA_A'
- ? ok     ("parsing file - parent / child")
- : not_ok ("parsing file - parent / child");
-$fdf_content_ptr->{'root.data.ort'} eq 'Dresden'
- ? ok     ("parsing file - characters")
- : not_ok ("parsing file - characters");
-$fdf_content_ptr->{'root.checkbox1'} eq 'OFF'
- ? ok     ("parsing file - special values")
- : not_ok ("parsing file - special values");
-$fdf_content_ptr->{'root.specials.parenthesize'} eq ' (parenthesize) '
- ? ok     ("parsing file - parenthesize")
- : not_ok ("parsing file - parenthesize");
-$fdf_content_ptr->{'root.specials.hexa'} eq 'zufällig'
- ? ok     ("parsing file - hexa")
- : not_ok ("parsing file - hexa");
-$fdf_content_ptr->{'root.parentB.kidB_B'} eq 'valueB_B'
- ? ok     ("parsing file - parent / child")
- : not_ok ("parsing file - parent / child");
-$fdf_content_ptr->{'root.parentB.kidB_A'} eq 'valueB_A'
- ? ok     ("parsing file - parent / child")
- : not_ok ("parsing file - parent / child");
-$fdf_content_ptr->{'root.specials.backspace'} eq ' \ '
- ? ok     ("parsing file - backspaces")
- : not_ok ("parsing file - backspaces");
-$fdf_content_ptr->{'root.data.name'} eq 'some company Inc'
- ? ok     ("parsing file - characters")
- : not_ok ("parsing file - characters");
-$fdf_content_ptr->{'root.specials.rhomb'} eq '#'
- ? ok     ("parsing file - rhomb")
- : not_ok ("parsing file - rhomb");
-$fdf_content_ptr->{'root.data.'} eq ''
- ? ok     ("parsing file - empty")
- : not_ok ("parsing file - empty");
-$fdf_content_ptr->{'root.specials.slash'} eq ' / '
- ? ok     ("parsing file - slash")
- : not_ok ("parsing file - slash");
-$fdf_content_ptr->{'root.checkbox2'} eq 'ON'
- ? ok     ("parsing file - special values")
- : not_ok ("parsing file - special values");
-$fdf_content_ptr->{'root.specials.spaces'} eq '  2x space at start and end  '
- ? ok     ("parsing file - spaces")
- : not_ok ("parsing file - spaces");
-$fdf_content_ptr->{'root.data.email'} eq 'info@doo.de'
- ? ok     ("parsing file - special characters")
- : not_ok ("parsing file - special characters");
-
+ok (($fdf_content_ptr->{'root.data.plzort'} eq '01069'),
+    "parsing file (digits)");
+ok (($fdf_content_ptr->{'root.parentA.kidA_A'} eq 'valueA_A'),
+    "parsing file (parent / child)");
+ok (($fdf_content_ptr->{'root.data.ort'} eq 'Dresden'),
+    "parsing file (characters)");
+ok (($fdf_content_ptr->{'root.checkbox1'} eq 'OFF'),
+    "parsing file (special values)");
+ok (($fdf_content_ptr->{'root.specials.parenthesize'} eq ' (parenthesize) '),
+    "parsing file (parenthesize)");
+ok (($fdf_content_ptr->{'root.specials.hexa'} eq 'zufällig'),
+    "parsing file (hexa)");
+ok (($fdf_content_ptr->{'root.parentB.kidB_B'} eq 'valueB_B'),
+    "parsing file (parent / child)");
+ok (($fdf_content_ptr->{'root.parentB.kidB_A'} eq 'valueB_A'),
+    "parsing file (parent / child)");
+ok (($fdf_content_ptr->{'root.specials.backspace'} eq ' \ '),
+    "parsing file (backspaces)");
+ok (($fdf_content_ptr->{'root.data.name'} eq 'some company Inc'),
+    "parsing file (characters)");
+ok (($fdf_content_ptr->{'root.specials.rhomb'} eq '#'),
+    "parsing file (rhomb)");
+ok (($fdf_content_ptr->{'root.data.'} eq ''),
+    "parsing file (empty)");
+ok (($fdf_content_ptr->{'root.specials.slash'} eq ' / '),
+    "parsing file (slash)");
+ok (($fdf_content_ptr->{'root.checkbox2'} eq 'ON'),
+    "parsing file (special values)");
+ok (($fdf_content_ptr->{'root.specials.spaces'} eq '  2x space at start and end  '),
+    "parsing file (spaces)");
+ok (($fdf_content_ptr->{'root.data.email'} eq 'info@doo.de'),
+    "parsing file (special characters)");
 
 my $keys = keys %{$fdf_content_ptr};
-$keys == 17
- ? ok     ("number of key-value pairs")
- : not_ok ("number of key-value pairs");
+ok ($keys == 17, "number of key-value pairs");

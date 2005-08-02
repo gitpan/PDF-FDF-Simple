@@ -3,5 +3,10 @@
 use strict;
 use Test::More;
 
-eval "use Test::Distribution not => 'description'";
-plan skip_all => "Test::Distribution required for checking distribution" if $@;
+if ($ENV{DO_DIST_CHECK}) {
+  eval "use Test::Distribution";
+  plan skip_all => "Test::Distribution required for checking distribution" if $@;
+} else {
+  print STDERR 
+  plan skip_all => 'Test::Distribution skipped unless env $DO_DIST_CHECK set.';
+}

@@ -7,7 +7,7 @@ use vars qw($VERSION $deferred_result_FDF_OPTIONS);
 use Data::Dumper;
 use Parse::RecDescent;
 
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 #Parse::RecDescent environment variables: enable for Debugging
 #$::RD_TRACE = 1;

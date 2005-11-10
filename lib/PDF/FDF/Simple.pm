@@ -7,7 +7,7 @@ use vars qw($VERSION $deferred_result_FDF_OPTIONS);
 use Data::Dumper;
 use Parse::RecDescent;
 
-$VERSION = '0.07';
+$VERSION = '0.08';
 
 #Parse::RecDescent environment variables: enable for Debugging
 #$::RD_TRACE = 1;
@@ -125,6 +125,10 @@ sub _post_init {
                | '<<' fieldvalue fieldname '>>'
                  {
                    $return = { $item{fieldname} => $item{fieldvalue} };
+                 }
+               | '<<' fieldname '>>'
+                 {
+                   $return = { $item{fieldname} => undef };
                  }
 
          fieldvalue : '/V' '(' <skip:""> value <skip:$item[3]> ')'
@@ -343,8 +347,9 @@ sub as_string {
 
 sub save {
   my $self = shift;
-  open (F, "> ".$self->filename) or do {
-    $self->errmsg ('error: open file ' . $self->filename);
+  my $filename = shift || $self->filename;
+  open (F, "> ".$filename) or do {
+    $self->errmsg ('error: open file ' . $filename);
     return 0;
   };
 

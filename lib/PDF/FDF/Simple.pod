@@ -16,6 +16,7 @@ PDF::FDF::Simple - Read and write (Acrobat) FDF files.
                   'my.checkbox.value'    => 'On',   # 'On' / 'Off'
                  });
   $fdf->save or print $fdf->errmsg;
+  $fdf->save ('otherfile.fdf');
   my $fdfcontent = $fdf->load;
   $fdfcontent = $fdf->load ($fdfstring);
   print $fdf->as_string;
@@ -95,9 +96,11 @@ information in a hashref (see also C<content>).
 An optional parameter can be given that contains FDF content. In that
 case it is not read from file C<filename>.
 
-=head2 save
+=head2 save (optional_filename)
 
-Save the FDF content into the file named via C<filename>.
+Save the FDF content into a file, using either the directly given
+C<optional_filename> parameter or (if C<optional_filename> is not
+given) the filename that was set via C<filename>.
 
 =head2 as_string
 

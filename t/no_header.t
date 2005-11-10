@@ -1,7 +1,6 @@
 ### -*- mode: perl; -*-
 
 use PDF::FDF::Simple;
-use File::Temp qw( tempfile );
 use Test::More;
 
 use Data::Dumper;

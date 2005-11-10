@@ -19,6 +19,8 @@ t/fdfparser_standard.fdf
 t/fdfparser_standard.t
 t/hunde_no_header.fdf
 t/hundev1.fdf
+t/missingfdfvalue.fdf
+t/missingfdfvalue.t
 t/no_header.t
 t/pod-coverage.t
 t/simple.fdf

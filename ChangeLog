@@ -1,3 +1,12 @@
+2005-11-10  Steffen Schwigon  <schwigon@webit.de>
+
+	* 0.08
+
+	* fixed parsing fields with missing values (missing /V in fdf);
+	reported by Ed Cole.
+
+	* save now also accepts an explicit filename argument
+
 2005-08-02  Steffen Schwigon  <schwigon@webit.de>
 
 	* 0.07
@@ -11,8 +20,9 @@
 	* 0.06
 
 	* The Parser now also works without initial version header in FDF
-	file. This is needed in FDFs that were submitted from Acrobat to
-	an URL (e.g., a CGI script). Spotted by Christopher P Crawford.
+	file. This seems to be needed in FDFs that were submitted from
+	Acrobat to an URL (e.g., a CGI script); reported by Christopher P
+	Crawford.
 
 	* undefined values are converted into empty strings ('') when fdf
 	is generated (and/or saved), to avoid "uninitialized value"

@@ -1,6 +1,6 @@
---- #YAML:1.0
+---
 name: PDF-FDF-Simple
-version: 0.07
+version: 0.08
 author: ~
 abstract: ~
 license: perl
@@ -12,5 +12,5 @@ requires:
 provides:
   PDF::FDF::Simple:
     file: lib/PDF/FDF/Simple.pm
-    version: 0.07
-generated_by: Module::Build version 0.25
+    version: 0.08
+generated_by: Module::Build version 0.26

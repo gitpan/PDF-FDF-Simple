@@ -1,7 +1,8 @@
 ---
 name: PDF-FDF-Simple
-version: 0.08
-author: ~
+version: 0.09
+author:
+  - ~
 abstract: ~
 license: perl
 requires:
@@ -12,5 +13,5 @@ requires:
 provides:
   PDF::FDF::Simple:
     file: lib/PDF/FDF/Simple.pm
-    version: 0.08
-generated_by: Module::Build version 0.26
+    version: 0.09
+generated_by: Module::Build version 0.23

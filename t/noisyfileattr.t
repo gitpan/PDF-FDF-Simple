@@ -8,31 +8,26 @@ use Parse::RecDescent;
 use strict;
 use warnings;
 
-plan tests => 5;
+plan tests => 4;
 
 ################## tests ##################
 
-# This real world file contains field 'Email' without a value
-my $fdf_fname = 't/missingfdfvalue.fdf';
-
+# This real world file contains /F with windowslike filename
+# (spaces and parens)
+my $fdf_fname = 't/noisyfileattr.fdf';
 
 my $fdf = new PDF::FDF::Simple ({ filename => $fdf_fname });
 my $erg = $fdf->load;
 
 is (
     $erg->{'4_Ec_3_equal.Application'},
-    'Off',
+    'Yes',
     "parse"
-   );
-
-ok (
-    (not defined $erg->{'Email'}),
-    "nonexisting fdf value"
    );
 
 is (
     $fdf->attribute_file,
-    '../template.pdf',
+    '/C/Documents and Settings/ajanvier/Local Settings/Temporary Internet Files/OLKCAD/tnt_employee_survey_English_rev3 (5).pdf',
     "attribute_file"
    );
 
@@ -45,4 +40,3 @@ ok (
     (grep '<601C7694037F98489E433900ED652316>', @{$fdf->attribute_id}),
     "attribute_id 2"
    );
-

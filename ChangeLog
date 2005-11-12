@@ -1,3 +1,10 @@
+2005-11-13  Steffen Schwigon  <schwigon@webit.de>
+
+	* 0.09
+
+	* fixed parsing file attribute (/F couldn't handle real world
+	filenames with spaces and parens); reported by Ed Cole
+
 2005-11-10  Steffen Schwigon  <schwigon@webit.de>
 
 	* 0.08

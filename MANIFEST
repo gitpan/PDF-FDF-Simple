@@ -22,6 +22,8 @@ t/hundev1.fdf
 t/missingfdfvalue.fdf
 t/missingfdfvalue.t
 t/no_header.t
+t/noisyfileattr.fdf
+t/noisyfileattr.t
 t/pod-coverage.t
 t/simple.fdf
 t/simple.t

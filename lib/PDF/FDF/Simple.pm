@@ -7,7 +7,7 @@ use vars qw($VERSION $deferred_result_FDF_OPTIONS);
 use Data::Dumper;
 use Parse::RecDescent;
 
-$VERSION = '0.08';
+$VERSION = '0.09';
 
 #Parse::RecDescent environment variables: enable for Debugging
 #$::RD_TRACE = 1;
@@ -253,10 +253,10 @@ sub _post_init {
                        $return = $item[1];
                      }
 
-         attributes : '/F' '(' name ')' attributes
-	              <defer: $PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{F} = $item[3];>
+         attributes : '/F' '(' <skip:""> value <skip:$item[3]> ')' attributes
+	              <defer: $PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{F} = $item[4];>
 	              {
-		       $return = $item{name};
+		       $return = $item{value};
 		      }
 	            | '/ID' '[' idnum(s?) ']' attributes
 	            | # empty

@@ -26,7 +26,8 @@ ok (($erg->{'Zu- und Vorname'} eq 'Steffen Schwigon' and
      $erg->{'Anschrift Behörde'} eq "Hundeanstalt\rGroßraum DD"),
     "parse");
 
-ok (($fdf->attribute_file eq 'hundev1.pdf'),
+is ($fdf->attribute_file,
+    'hundev1.pdf',
     "attribute_file");
 
 ok ((grep '<ece53a3b05e57db38ed6f01c29a13ced>', @{$fdf->attribute_id}),

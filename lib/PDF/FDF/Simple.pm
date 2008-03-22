@@ -7,44 +7,41 @@ use vars qw($VERSION $deferred_result_FDF_OPTIONS);
 use Data::Dumper;
 use Parse::RecDescent;
 
-$VERSION = '0.11';
+use base 'Class::Accessor';
+PDF::FDF::Simple->mk_accessors(qw(
+                                     skip_undefined_fields
+                                     filename
+                                     content
+                                     errmsg
+                                     parser
+                                     attribute_file
+                                     attribute_ufile
+                                     attribute_id
+                                ));
+
+$VERSION = '0.12';
 
 #Parse::RecDescent environment variables: enable for Debugging
 #$::RD_TRACE = 1;
 #$::RD_HINT  = 1;
 
-use Class::MethodMaker
- get_set => [
-             'skip_undefined_fields',
-             'filename',
-             'content',
-             'errmsg',
-             'parser',
-             'attribute_file',
-             'attribute_ufile',
-             'attribute_id',
-            ],
- new_with_init => 'new',
- new_hash_init => 'hash_init',
- ;
-
-sub _pre_init {
-  my $self = shift;
-  $self->errmsg ('');
-  $self->skip_undefined_fields (0);
-}
-
-# setting up grammar
-sub _post_init {
-  my $self = shift;
-
-  my $recdesc = new Parse::RecDescent (
+sub new {
+  my $class = shift;
+  my %DEFAULTS = (
+                  errmsg                => '',
+                  skip_undefined_fields => 0,
+                  parser                => new Parse::RecDescent (
        q(
-         startrule : docstart objlist 'trailer' '<<' '/Root 1 0 R' '>>' /.*/
-                      {
-			$PDF::FDF::Simple::deferred_result_FDF_OPTIONS = {};
-                        $return = $item{objlist};
-                      }
+         startrule : docstart objlist xref(?) 'trailer' '<<' '/Root 1 0 R' '>>' /.*/
+                     {
+                       $PDF::FDF::Simple::deferred_result_FDF_OPTIONS = {};
+                       $return = $item{objlist};
+                     }
+
+         xref : 'xref' /\d+/ /\d+/ xrefentry(s)
+
+         xrefentry : /\d+/ /\d+/ /[fn]/
+
          docstart : /%FDF-[0-9]+\.[0-9]+/ garbage
                   | # empty
 
@@ -62,21 +59,21 @@ sub _post_init {
 
          obj : /\d+/ /\d+/ 'obj' objbody 'endobj'
                {
-		$return = $item{objbody};
-	       }
+                 $return = $item{objbody};
+               }
 
          objbody : '<<' '/FDF' '<<' attributes '/Fields' '[' fieldlist ']' attributes '>>' '>>'
                    {
-		    $return = $item{fieldlist};
-		   }
+                     $return = $item{fieldlist};
+                   }
                  | '[' fieldlist ']'
                    {
-		     $return = $item{fieldlist};
-		   }
+                     $return = $item{fieldlist};
+                   }
                  | '<<' '/FDF' '<<' attributes '/Fields' objreference attributes '>>' '>>'
                    {
-		    $return = [];
-		   }
+                     $return = [];
+                   }
 
          objreference : /\d+/ /\d+/ 'R'
 
@@ -115,9 +112,9 @@ sub _post_init {
                      }
 
          kids : '/Kids' '[' fieldlist ']'
-	        {
-		 $return = $item{fieldlist};
-	        }
+                {
+                  $return = $item{fieldlist};
+                }
 
          field : '<<' fieldname fieldvalue '>>'
                  {
@@ -155,13 +152,13 @@ sub _post_init {
                      }
 
 	 value : valuechar value
-	         {
-                   $return = $item{valuechar}.$item{value};
-                 }
-	       | # empty
-	         {
-		  $return = "";
-                 }
+             {
+               $return = $item{valuechar}.$item{value};
+             }
+           | # empty
+             {
+               $return = "";
+             }
 
 	 # This handles different whitespace artefacts that exist
 	 # in this world and handles them similar to FDFToolkit.
@@ -270,20 +267,15 @@ sub _post_init {
          name : /([^\)][\s]*)*/   # one symbol but not \)
 
          idnum : '<' /[\w]*/ '>'
-	         <defer: push (@{$PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{ID}}, $item[1].$item[2].$item[3]); >
+                 <defer: push (@{$PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{ID}}, $item[1].$item[2].$item[3]); >
                | '(' /([^()])*/ ')'
-	         <defer: push (@{$PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{ID}}, $item[1].$item[2].$item[3]); >
+                 <defer: push (@{$PDF::FDF::Simple::deferred_result_FDF_OPTIONS->{ID}}, $item[1].$item[2].$item[3]); >
 
-        ));
-
-  $self->parser ($recdesc);
-}
-
-sub init {
-  my $self = shift;
-  $self->_pre_init(@_);
-  $self->hash_init(@_);
-  $self->_post_init(@_);
+        )),
+                 );
+  # accept hashes or hash refs for backwards compatibility
+  my %ARGS = ref($_[0]) =~ /HASH/ ? %{$_[0]} : @_;
+  my $self = Class::Accessor::new($class, { %DEFAULTS, %ARGS });
   return $self;
 }
 

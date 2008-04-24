@@ -4,7 +4,6 @@ INSTALL
 lib/PDF/FDF/Simple.pm
 lib/PDF/FDF/Simple.pod
 LICENSE
-Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
@@ -35,3 +34,4 @@ t/strange_id_values.t
 t/undef_handling.t
 t/with_xrefs_and_valuearrays.fdf
 t/with_xrefs_and_valuearrays.t
+Makefile.PL

@@ -19,6 +19,8 @@ PDF::FDF::Simple - Read and write (Acrobat) FDF files.
   $fdf->save ('otherfile.fdf');
   my $fdfcontent = $fdf->load;
   $fdfcontent = $fdf->load ($fdfstring);
+  print $fdf->{'organisation'};
+  print $fdf->{'dotted.field.name'};
   print $fdf->as_string;
   print "Corresponding PDF (attribute /F): ".$fdf->attribute_file."\n";
   print "IDs (attribute /ID): ";
@@ -203,22 +205,17 @@ Tim Schreier
 
 =back
 
+=head1 REPOSITORY
+
+The public repository is hosted on github:
+
+  git clone git://github.com/renormalist/pdf-fdf-simple.git
+
 =head1 LICENSE
 
 Copyright (c) 2004 .. 2008 Steffen Schwigon. All rights reserved. This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
-
-=head1 BUGS
-
-=over 4
-
-=item *
-
-Deep recursion warnings with large content. Seems to be harmless but
-if you know how to avoid them, please drop me a mail.
-
-=back
 
 =head1 FEEDBACK
 

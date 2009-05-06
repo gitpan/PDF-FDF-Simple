@@ -1,3 +1,20 @@
+2009-04-28  Steffen Schwigon  <ss5@renormalist.net>
+
+	* 0.20
+
+	* Outsourced grammar file into lib/PDF/FDF/Simple/grammar; now
+	less double-escaping in the grammar because it's no longer part of
+	a quote operator.
+
+	* Provide a precompiled grammar file for faster startup time, can
+	be updated with "./Build grammar"
+
+	* for easier development it is still possible to compile the
+	grammar at runtime by setting the environment variable
+	PDF_FDF_SIMPLE_IGNORE_PRECOMPILED_GRAMMAR=1
+
+	* new dependency to File::ShareDir
+
 2009-04-26  Steffen Schwigon  <ss5@renormalist.net>
 
 	* 0.19
@@ -20,6 +37,8 @@
 
 	* parsing optional /Type/* attribute plus unittest (spotted and
 	test provided by Rosal Lozada)
+
+	* new dependency to Compress::Zlib
 
 2008-04-24  ss5  <ss5@renormalist.net>
 
